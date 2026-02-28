@@ -1,0 +1,10 @@
+{
+  "uir_version": "1",
+  "nodes": [
+    {"id": "module:sample", "node_type": "Module", "props": {}},
+    {"id": "symbol:0:hello", "node_type": "Symbol", "props": {"token": "hello"}}
+  ],
+  "edges": [
+    {"id": "contains:0", "edge_type": "Contains", "src": "module:sample", "dst": "symbol:0:hello", "props": {}}
+  ]
+}

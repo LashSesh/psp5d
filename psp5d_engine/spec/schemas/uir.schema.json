@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UIR typed multigraph",
+  "type": "object",
+  "required": ["uir_version", "nodes", "edges"],
+  "additionalProperties": false,
+  "properties": {
+    "uir_version": {"type": "string", "const": "1"},
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "node_type", "props"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "node_type": {"type": "string", "enum": ["Symbol", "Func", "Class", "Module", "Literal", "Type", "Block", "Unknown"]},
+          "props": {"type": "object", "additionalProperties": true}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "edge_type", "src", "dst", "props"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "edge_type": {"type": "string", "enum": ["Contains", "Calls", "Reads", "Writes", "Defines", "Imports", "DependsOn", "FlowsTo", "Unknown"]},
+          "src": {"type": "string"},
+          "dst": {"type": "string"},
+          "props": {"type": "object", "additionalProperties": true}
+        }
+      }
+    }
+  }
+}

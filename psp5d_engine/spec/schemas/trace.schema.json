@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Trace",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["index", "op_code", "op_params_canonical", "sigma_before_digest", "sigma_after_digest", "evidence_ref"],
+    "additionalProperties": false,
+    "properties": {
+      "index": {"type": "integer", "minimum": 0},
+      "op_code": {"type": "string"},
+      "op_params_canonical": {"type": "string"},
+      "sigma_before_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+      "sigma_after_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+      "evidence_ref": {"type": "string"}
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence",
+  "type": "object",
+  "required": ["step_index", "kind", "payload", "digest"],
+  "additionalProperties": false,
+  "properties": {
+    "step_index": {"type": "integer", "minimum": 0},
+    "kind": {"type": "string"},
+    "payload": {},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

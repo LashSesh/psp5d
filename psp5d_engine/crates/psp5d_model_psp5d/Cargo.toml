@@ -1,0 +1,21 @@
+[package]
+name = "psp5d_model_psp5d"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+psp5d_core = { path = "../psp5d_core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tree-sitter = { version = "0.22", optional = true }
+tree-sitter-python = { version = "0.21", optional = true }
+
+[features]
+default = []
+python-ts = ["dep:tree-sitter", "dep:tree-sitter-python"]
+
+[lints]
+workspace = true

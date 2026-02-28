@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TritonProfile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "float_policy",
+    "spiral_delta_q",
+    "solve_threshold_q",
+    "coagula_threshold_q",
+    "tic_min_points"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "profile_id": {"type": "string"},
+    "float_policy": {"type": "string", "const": "q16_16_round_half_even"},
+    "spiral_delta_q": {"type": "integer"},
+    "solve_threshold_q": {"type": "integer", "minimum": 0},
+    "coagula_threshold_q": {"type": "integer", "minimum": 0},
+    "tic_min_points": {"type": "integer", "minimum": 1}
+  }
+}

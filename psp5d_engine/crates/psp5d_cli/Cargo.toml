@@ -1,0 +1,25 @@
+[package]
+name = "psp5d_cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "psp5d"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+psp5d_core = { path = "../psp5d_core" }
+psp5d_model_psp5d = { path = "../psp5d_model_psp5d" }
+
+[dev-dependencies]
+assert_cmd = "2"
+tempfile = "3"
+
+[lints]
+workspace = true

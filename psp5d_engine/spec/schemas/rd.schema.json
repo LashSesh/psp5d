@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunDescriptor",
+  "type": "object",
+  "required": ["spec_version", "engine_version", "model_pack_version", "seed_policy", "io_policy", "normalization_profile", "canon"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {"type": "string"},
+    "engine_version": {"type": "string"},
+    "model_pack_version": {"type": "string"},
+    "seed_policy": {
+      "oneOf": [
+        {"type": "string", "const": "none"},
+        {
+          "type": "object",
+          "required": ["fixed"],
+          "additionalProperties": false,
+          "properties": {
+            "fixed": {
+              "type": "object",
+              "required": ["seed_id", "bytes_hex"],
+              "additionalProperties": false,
+              "properties": {
+                "seed_id": {"type": "string"},
+                "bytes_hex": {"type": "string", "pattern": "^[0-9a-fA-F]*$"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "io_policy": {"type": "array", "items": {"type": "string"}},
+    "normalization_profile": {"type": "string"},
+    "canon": {
+      "type": "object",
+      "required": ["float_policy"],
+      "additionalProperties": false,
+      "properties": {
+        "float_policy": {"type": "string", "enum": ["q16_16_round_half_even"]}
+      }
+    }
+  }
+}

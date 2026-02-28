@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TritonGateEvidence",
+  "type": "object",
+  "required": [
+    "predicate_id",
+    "predicate_ver",
+    "solve_threshold_q",
+    "coagula_threshold_q",
+    "measured_psi_q",
+    "measured_rho_q",
+    "measured_omega_q",
+    "solve_pass",
+    "coagula_pass",
+    "outcome",
+    "evidence_digest"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "predicate_id": {"type": "string", "const": "triton.solve_coagula"},
+    "predicate_ver": {"type": "string"},
+    "solve_threshold_q": {"type": "integer", "minimum": 0},
+    "coagula_threshold_q": {"type": "integer", "minimum": 0},
+    "measured_psi_q": {"type": "integer"},
+    "measured_rho_q": {"type": "integer"},
+    "measured_omega_q": {"type": "integer"},
+    "solve_pass": {"type": "boolean"},
+    "coagula_pass": {"type": "boolean"},
+    "outcome": {"type": "boolean"},
+    "evidence_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

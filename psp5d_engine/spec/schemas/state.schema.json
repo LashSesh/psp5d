@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "type": "object",
+  "required": ["sigma_id", "payload", "digest"],
+  "additionalProperties": false,
+  "properties": {
+    "sigma_id": {"type": "string"},
+    "payload": {},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

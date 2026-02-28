@@ -1,0 +1,22 @@
+[workspace]
+members = [
+    "crates/psp5d_core",
+    "crates/psp5d_model_psp5d",
+    "crates/psp5d_cli",
+    "crates/psp5d_layer_triton",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0"
+version = "0.1.0"
+authors = ["PSP5D contributors"]
+repository = "https://example.invalid/psp5d_engine"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "deny"

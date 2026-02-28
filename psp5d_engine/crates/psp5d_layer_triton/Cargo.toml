@@ -1,0 +1,15 @@
+[package]
+name = "psp5d_layer_triton"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+psp5d_core = { path = "../psp5d_core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints]
+workspace = true

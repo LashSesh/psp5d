@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PSP5D Block",
+  "type": "object",
+  "required": ["header", "payload", "block_digest"],
+  "additionalProperties": false,
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["k1", "k2", "nc_tag", "prev_digest", "rd_digest", "pi_id", "pi_params_digest"],
+      "additionalProperties": false,
+      "properties": {
+        "k1": {"type": "integer", "minimum": 0},
+        "k2": {"type": "integer", "minimum": 0},
+        "nc_tag": {"type": "string"},
+        "prev_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "rd_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "pi_id": {"type": "string"},
+        "pi_params_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "payload": {
+      "type": "object",
+      "required": ["uir_digest", "astar_digest", "metrics", "gate_report", "artifact_digests"],
+      "additionalProperties": false,
+      "properties": {
+        "uir_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "astar_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "metrics": {"type": "object"},
+        "gate_report": {"type": "object"},
+        "artifact_digests": {"type": "array", "items": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+      }
+    },
+    "block_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

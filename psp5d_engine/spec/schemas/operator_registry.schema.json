@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OperatorRegistry",
+  "type": "object",
+  "required": ["operators"],
+  "additionalProperties": false,
+  "properties": {
+    "operators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["op_code", "version", "digest"],
+        "additionalProperties": false,
+        "properties": {
+          "op_code": {"type": "string"},
+          "version": {"type": "string"},
+          "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

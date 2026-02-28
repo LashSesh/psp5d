@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manifest",
+  "type": "object",
+  "required": ["hash_algorithm", "rd_hash", "initial_sigma_hash", "trace_hash", "evidence_hashes"],
+  "additionalProperties": false,
+  "properties": {
+    "hash_algorithm": {"type": "string", "const": "sha256"},
+    "rd_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "initial_sigma_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "trace_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "evidence_hashes": {"type": "array", "items": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+  }
+}

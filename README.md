@@ -37,7 +37,7 @@ Die Codebase ist als Cargo-Workspace aufgebaut und fokussiert auf:
 ## Repository-Struktur
 
 ```text
-psp5d_engine/
+./
 ├─ crates/
 │  ├─ psp5d_core/          # Modellagnostischer Kernel (Engine, Digests, Replay, Manifest, Schema)
 │  ├─ psp5d_model_psp5d/   # PSP5D-Modelllogik (UIR, HDAG, TriMoebius, Observer, Gates, Frontends)
@@ -93,7 +93,6 @@ Die CLI orchestriert den End-to-End-Flow:
 > Voraussetzungen: Rust (Edition 2021, `rust-version = 1.75` laut Workspace-Metadaten).
 
 ```bash
-cd psp5d_engine
 cargo build
 cargo run -p psp5d_cli -- --help
 ```

@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 psp5d_core = { path = "../psp5d_core" }
+psp5d_layer_triton = { path = "../psp5d_layer_triton" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tree-sitter = { version = "0.22", optional = true }

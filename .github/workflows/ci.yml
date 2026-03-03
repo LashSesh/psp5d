@@ -12,14 +12,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Format check
         run: cargo fmt --all -- --check
-        working-directory: psp5d_engine
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
-        working-directory: psp5d_engine
       - name: Build
         run: cargo build --workspace
-        working-directory: psp5d_engine
-
       - name: Test
         run: cargo test --workspace
-        working-directory: psp5d_engine

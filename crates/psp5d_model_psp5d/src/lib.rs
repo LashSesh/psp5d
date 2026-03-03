@@ -4,8 +4,11 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 use psp5d_core::{
-    digest_sha256_jcs, Engine, EngineOperator, OperatorRegistry, OperatorRole, Program,
-    RunDescriptor,
+    digest_sha256_jcs, init_sigma_from_uir, Engine, EngineOperator, EngineTrace, OperatorRegistry,
+    OperatorRole, Program, RunDescriptor,
+};
+use psp5d_layer_triton::{
+    TritonContext, TritonGateSolveCoagula, TritonMeasureSigma, TritonStep, TritonTICCrystallize,
 };
 use serde_json::{json, Value};
 
@@ -95,10 +98,78 @@ pub fn build_engine() -> Engine {
     Engine { registry: reg }
 }
 
+pub fn build_triton_engine(rd: &RunDescriptor) -> Engine {
+    let mut reg = OperatorRegistry::new();
+    // Triton operators for Solve, Measure, Gate, Emit roles:
+    reg.register(Box::new(TritonStep {
+        ctx: TritonContext {
+            rd: rd.clone(),
+            spiral_delta_q: 1,
+            solve_threshold_q: 500_000,
+            coagula_threshold_q: 250_000,
+            tic_min_points: 1,
+        },
+    }));
+    reg.register(Box::new(TritonMeasureSigma));
+    reg.register(Box::new(TritonGateSolveCoagula {
+        ctx: TritonContext {
+            rd: rd.clone(),
+            spiral_delta_q: 1,
+            solve_threshold_q: 500_000,
+            coagula_threshold_q: 250_000,
+            tic_min_points: 1,
+        },
+    }));
+    reg.register(Box::new(TritonTICCrystallize {
+        ctx: TritonContext {
+            rd: rd.clone(),
+            spiral_delta_q: 1,
+            solve_threshold_q: 500_000,
+            coagula_threshold_q: 250_000,
+            tic_min_points: 1,
+        },
+    }));
+    // JsonPatchOp for the remaining roles: Ingest, Canon, Morph, Select, Merge
+    for (role, name) in [
+        (OperatorRole::Ingest, "ingest_v1"),
+        (OperatorRole::Canon, "canon_v1"),
+        (OperatorRole::Morph, "morph_v1"),
+        (OperatorRole::Select, "select_v1"),
+        (OperatorRole::Merge, "merge_v1"),
+    ] {
+        reg.register(Box::new(JsonPatchOp { role, name }));
+    }
+    Engine { registry: reg }
+}
+
 pub fn run_10_steps(
     rd: &RunDescriptor,
 ) -> Result<(Value, psp5d_core::EngineTrace), psp5d_core::CoreError> {
     let engine = build_engine();
     let program = Program::psp_core_default_cycle();
     engine.run(&json!({"count":0_u64}), &program, rd, 10)
+}
+
+pub fn run_with_input(
+    input_text: &str,
+    steps: usize,
+    rd: &RunDescriptor,
+) -> Result<(Value, EngineTrace), psp5d_core::CoreError> {
+    let graph = text_to_uir("input", input_text);
+    let sigma = init_sigma_from_uir("run", &graph, rd)?;
+    let engine = build_engine();
+    let program = Program::psp_core_default_cycle();
+    engine.run(&sigma.payload, &program, rd, steps)
+}
+
+pub fn run_with_input_triton(
+    input_text: &str,
+    steps: usize,
+    rd: &RunDescriptor,
+) -> Result<(Value, EngineTrace), psp5d_core::CoreError> {
+    let graph = text_to_uir("input", input_text);
+    let sigma = init_sigma_from_uir("run", &graph, rd)?;
+    let engine = build_triton_engine(rd);
+    let program = Program::psp_core_default_cycle();
+    engine.run(&sigma.payload, &program, rd, steps)
 }

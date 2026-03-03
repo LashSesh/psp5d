@@ -6,7 +6,7 @@ use psp5d_core::{
     build_evidence, build_manifest, first_divergence, verify_ledger_head,
     verify_manifest_consistency, LedgerEntry, ReplayManifest, RunDescriptor, TraceEntry,
 };
-use psp5d_model_psp5d::run_10_steps;
+use psp5d_model_psp5d::{run_with_input, run_with_input_triton};
 use serde::Serialize;
 use serde_json::{json, Value};
 
@@ -25,6 +25,9 @@ enum Commands {
         rd: PathBuf,
         #[arg(long)]
         out: PathBuf,
+        /// Use the Triton operator pipeline (Solve/Measure/Gate/Emit via Triton layer)
+        #[arg(long, default_value_t = false)]
+        triton: bool,
     },
     Replay {
         evidence_path: PathBuf,
@@ -32,6 +35,9 @@ enum Commands {
         input: PathBuf,
         #[arg(long)]
         rd: PathBuf,
+        /// Use the Triton operator pipeline (must match the engine used during the original run)
+        #[arg(long, default_value_t = false)]
+        triton: bool,
     },
     Audit {
         ledger_path: PathBuf,
@@ -74,12 +80,14 @@ fn run(cli: Cli) -> Result<JsonOut, (i32, String, Value)> {
             input_path,
             rd,
             out,
-        } => cmd_run(&input_path, &rd, &out),
+            triton,
+        } => cmd_run(&input_path, &rd, &out, triton),
         Commands::Replay {
             evidence_path,
             input,
             rd,
-        } => cmd_replay(&evidence_path, &input, &rd),
+            triton,
+        } => cmd_replay(&evidence_path, &input, &rd, triton),
         Commands::Audit { ledger_path, head } => cmd_audit(&ledger_path, &head),
     }
 }
@@ -90,24 +98,34 @@ fn read_rd(rd_path: &Path) -> Result<RunDescriptor, (i32, String, Value)> {
     serde_json::from_str(&raw).map_err(|e| (40, e.to_string(), json!({"path":rd_path})))
 }
 
-fn digest_input(path: &Path, rd: &RunDescriptor) -> Result<String, (i32, String, Value)> {
-    let raw = fs::read_to_string(path).map_err(|e| (40, e.to_string(), json!({"path":path})))?;
-    psp5d_core::digest_sha256_jcs(&json!({"input":raw}), rd)
-        .map_err(|e| (40, e.to_string(), json!({"path":path})))
+fn read_input(path: &Path) -> Result<String, (i32, String, Value)> {
+    fs::read_to_string(path).map_err(|e| (40, e.to_string(), json!({"path":path})))
 }
 
-fn cmd_run(input_path: &Path, rd_path: &Path, out: &Path) -> Result<JsonOut, (i32, String, Value)> {
+fn cmd_run(
+    input_path: &Path,
+    rd_path: &Path,
+    out: &Path,
+    triton: bool,
+) -> Result<JsonOut, (i32, String, Value)> {
     let rd = read_rd(rd_path)?;
-    let input_digest = digest_input(input_path, &rd)?;
-    let (_state, trace) = run_10_steps(&rd).map_err(|e| (20, e.to_string(), json!({})))?;
+    let input_text = read_input(input_path)?;
+    let input_digest = psp5d_core::digest_sha256_jcs(&json!({"input": &input_text}), &rd)
+        .map_err(|e| (40, e.to_string(), json!({"path":input_path})))?;
+
+    let (final_state, trace) = if triton {
+        run_with_input_triton(&input_text, 9, &rd)
+    } else {
+        run_with_input(&input_text, 9, &rd)
+    }
+    .map_err(|e| (20, e.to_string(), json!({})))?;
 
     let evidence = build_evidence(&trace, &rd, input_digest.clone())
         .map_err(|e| (20, e.to_string(), json!({})))?;
-    let trace_digest = psp5d_core::digest_sha256_jcs(
-        &serde_json::to_value(&trace).map_err(|e| (20, e.to_string(), json!({})))?,
-        &rd,
-    )
-    .map_err(|e| (20, e.to_string(), json!({})))?;
+
+    // Reuse the trace_digest already computed inside build_evidence.
+    let trace_digest = evidence.trace_digest.clone();
+
     let head_digest = trace
         .last()
         .map(|t| t.out_digest.clone())
@@ -122,7 +140,15 @@ fn cmd_run(input_path: &Path, rd_path: &Path, out: &Path) -> Result<JsonOut, (i3
     let ledger = make_ledger(&trace);
     write_ledger_jsonl(&out.join("ledger.jsonl"), &ledger)?;
 
-    let committed = trace.iter().any(|t| t.role == "emit");
+    // For the Triton engine the gate outcome is stored in state; for the standard
+    // engine any trace entry with role "emit" indicates a successful commit.
+    let committed = if triton {
+        final_state["triton"]["gate_pass"]
+            .as_bool()
+            .unwrap_or(false)
+    } else {
+        trace.iter().any(|t| t.role == "emit")
+    };
     let code = if committed { 0 } else { 10 };
     Ok(JsonOut {
         ok: committed,
@@ -146,9 +172,12 @@ fn cmd_replay(
     evidence_path: &Path,
     input_path: &Path,
     rd_path: &Path,
+    triton: bool,
 ) -> Result<JsonOut, (i32, String, Value)> {
     let rd = read_rd(rd_path)?;
-    let input_digest = digest_input(input_path, &rd)?;
+    let input_text = read_input(input_path)?;
+    let input_digest = psp5d_core::digest_sha256_jcs(&json!({"input": &input_text}), &rd)
+        .map_err(|e| (40, e.to_string(), json!({"path":input_path})))?;
 
     let run_dir = if evidence_path.is_dir() {
         evidence_path.to_path_buf()
@@ -178,7 +207,13 @@ fn cmd_replay(
     verify_manifest_consistency(&expected_evidence, &expected_manifest)
         .map_err(|e| (20, e.to_string(), json!({})))?;
 
-    let (_state, actual_trace) = run_10_steps(&rd).map_err(|e| (20, e.to_string(), json!({})))?;
+    let (_state, actual_trace) = if triton {
+        run_with_input_triton(&input_text, 9, &rd)
+    } else {
+        run_with_input(&input_text, 9, &rd)
+    }
+    .map_err(|e| (20, e.to_string(), json!({})))?;
+
     if let Some(div) = first_divergence(&expected_trace, &actual_trace) {
         return Err((
             30,

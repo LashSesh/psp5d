@@ -81,11 +81,23 @@ impl EngineOperator for TritonMeasureSigma {
         OperatorRole::Measure
     }
     fn execute(&self, state: &Value, _rd: &RunDescriptor) -> Result<(Value, Value), CoreError> {
-        let point: ExplorationPoint =
-            serde_json::from_value(state["triton"]["last_point"].clone())?;
+        // On the first cycle Solve/TritonStep hasn't run yet, so last_point may be absent.
+        // Default to a zero spectral signature in that case.
+        let sigma = state
+            .get("triton")
+            .and_then(|t| t.get("last_point"))
+            .filter(|v| !v.is_null())
+            .map(|v| serde_json::from_value::<ExplorationPoint>(v.clone()))
+            .transpose()?
+            .map(|p| p.sigma)
+            .unwrap_or(SpectralSignature {
+                psi_q: 0,
+                rho_q: 0,
+                omega_q: 0,
+            });
         let mut next = state.clone();
-        next["triton"]["sigma_measured"] = serde_json::to_value(&point.sigma)?;
-        Ok((next, json!({"measured":point.sigma})))
+        next["triton"]["sigma_measured"] = serde_json::to_value(&sigma)?;
+        Ok((next, json!({"measured": sigma})))
     }
 }
 

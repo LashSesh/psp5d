@@ -993,6 +993,7 @@ name = "psp5d_model_psp5d"
 version = "0.1.0"
 dependencies = [
  "psp5d_core",
+ "psp5d_layer_triton",
  "serde",
  "serde_json",
  "tree-sitter",
